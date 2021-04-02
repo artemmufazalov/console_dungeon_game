@@ -1,0 +1,12 @@
+# IDEA files
+.idea
+
+# Virtual environment
+/venv
+
+# Configs
+.env
+/configs
+
+# Other
+/other
