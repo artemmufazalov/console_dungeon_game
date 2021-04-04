@@ -39,6 +39,16 @@ class GameController:
 
                     request_user_confirmation()
 
+                elif user_command == "repeat" or user_command == "repeat()":
+                    player_actions = self.game_engine.get_player_actions()
+                    if len(player_actions) == 0:
+                        raise GameError("Нет команд, которые можно было бы повторить!")
+                    else:
+                        character = player_actions[-1]["subject"]
+                        action = player_actions[-1]["action"]
+                        args = player_actions[-1]["args"]
+                        print(character.perform_action(action, args))
+
                 elif user_command.startswith("info("):
                     arguments = list(map(lambda x: x.strip(), user_command[user_command.index("(") + 1: -1].split(",")))
 

@@ -96,9 +96,9 @@ class GameEngine:
     def _init_empty_game_field(self):
         """Функция создания пустого игрового поля"""
 
-        for x in range(self._game_field_width):
+        for x in range(self._game_field_length):
             self.game_field.append([])
-            for y in range(self._game_field_length):
+            for y in range(self._game_field_width):
                 # Здесь транспонируются координаты. В дальнейшем обращение к игровому полю будет формата [y][x]
                 game_spot = GameSpot(y + 1, x + 1, False, None, False, [])
                 self.game_field[x].append(game_spot)
@@ -219,13 +219,18 @@ class GameEngine:
         self.items_dict[boss.get_tag()] = boss
         print(f"* {boss.info()}\n")
 
-    def add_player_action(self, action, args):
+    def add_player_action(self, subject, action, args):
         """
         Добавляет действие пользователя в историю\n
-        :param action: str, действие игрока
+        :param subject: PlayableCharacter, персонаж, который выполняет действие
+        :param action: str, действие персонажа
         :param args: list [], список аргументов действия
         """
-        self.player_actions.append({"action": action, "args": args})
+        self.player_actions.append({"subject": subject, "action": action, "args": args})
+
+    def get_player_actions(self):
+        """Возвращает список действия персонажей игрока """
+        return self.player_actions
 
     def add_score(self, score):
         """

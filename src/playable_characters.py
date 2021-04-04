@@ -90,6 +90,18 @@ class PlayableCharacter(GameItem, Movable):
         if tag not in list(self.game_engine.items_dict.keys()):
             raise GameError("Введен некорректный тэг!")
 
+    def check_is_valid_coords(self, x, y):
+        """Проверяет валидность переданных координат"""
+
+        if not x.isdigit() or not y.isdigit():
+            raise GameError("Переданные координаты имеют неверный формат!")
+
+        x = int(x)
+        y = int(y)
+
+        if x < 0 or x > self.game_engine.get_width() or y < 0 or y > self.game_engine.get_length():
+            raise GameError("Переданные координаты находятся за пределами игрового поля!")
+
     def attack(self, enemy):
         """Отвечает за ближний бой персонажа с врагом"""
 
@@ -99,6 +111,11 @@ class PlayableCharacter(GameItem, Movable):
         if distance > 1:
             raise GameError("Враг находится слишком далеко!")
         else:
+            if self.aec > self.energy:
+                raise GameError("У персонажа недостаточно энергии для атаки!")
+
+            self.energy -= self.aec
+
             result = f"Бой между \"{self.name}\" и \"{enemy.name}\" начался!"
             result += f"\n{enemy.decrease_health(self.cca)}"
 
@@ -120,6 +137,11 @@ class PlayableCharacter(GameItem, Movable):
         if distance > self.range:
             raise GameError("Враг находится слишком далеко!")
         else:
+            if self.aec > self.energy:
+                raise GameError("У персонажа недостаточно энергии для выстрела!")
+
+            self.energy -= self.aec
+
             result = f"Бой между \"{self.name}\" и \"{enemy.name}\" начался!"
             result += f"\n\"{self.name}\" стреляет во врага!"
             result += f"\n{enemy.decrease_health(self.rca)}"
@@ -196,6 +218,10 @@ class PlayableCharacter(GameItem, Movable):
         :param args: list [], список аргументов функции действия
         """
 
+        # Проверяем, являются ли переданные координаты корректными
+        if len(args) == 2:
+            self.check_is_valid_coords(*args)
+
         result = str()
 
         if action == "attack":
@@ -203,7 +229,7 @@ class PlayableCharacter(GameItem, Movable):
                 result = self.attack_by_coords(int(args[0]), int(args[1]))
 
             elif len(args) == 1:
-                result =  self.attack_by_tag(args[0])
+                result = self.attack_by_tag(args[0])
 
             else:
                 raise GameError("Неверное число аргументов.")
@@ -238,7 +264,7 @@ class PlayableCharacter(GameItem, Movable):
             raise GameError("Передано неверное описание действия.")
 
         if result:
-            self.game_engine.add_player_action("action", args)
+            self.game_engine.add_player_action(self, action, args)
 
         return result
 

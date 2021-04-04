@@ -191,7 +191,7 @@ class Enemy(GameItem):
 
         response = str()
 
-        if self.health < 0:
+        if self.health <= 0:
             self._die()
             response += f"Враг \"{self.name}\" получил {value} урона. \"{self.name}\" был повержен."
         else:
