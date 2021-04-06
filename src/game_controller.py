@@ -47,6 +47,10 @@ class GameController:
                         character = player_actions[-1]["subject"]
                         action = player_actions[-1]["action"]
                         args = player_actions[-1]["args"]
+
+                        if character.__class__.__name__[0].lower() not in self.game_engine.get_friendly_tags():
+                            raise GameError(f"Команду невозможно повторить, возможно ваш \"{character.name}\" погиб!")
+
                         print(character.perform_action(action, args))
 
                 elif user_command.startswith("info("):
