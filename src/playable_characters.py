@@ -58,7 +58,7 @@ class PlayableCharacter(GameItem, Movable):
         for value in en_ru_features_dict:
             result += f"\"{en_ru_features_dict[value]}\" {self.__getattribute__(value)}, "
 
-        result = result[:-2] + "."
+        result = result[:-2] + ". "
         result += f"Находится в точке ({self.x}, {self.y})."
 
         return result
@@ -323,7 +323,7 @@ class Fairy(PlayableCharacter, Flyable):
     default_rca_multiplier = 1
     default_rca_range_multiplier = 2
     default_attack_energy_cost_multiplier = 1
-    default_movement_energy_cost_multiplier = 0.5
+    default_movement_energy_cost_multiplier = 1
 
     def __init__(self, x, y, game_engine):
         PlayableCharacter.__init__(self, *self.init_multipliers(), game_engine, x=x, y=y)

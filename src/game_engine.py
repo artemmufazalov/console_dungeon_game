@@ -59,7 +59,7 @@ class GameEngine:
         {"position": [2, 5],
          "protected": [[1, 5], [1, 6], [1, 7], [1, 8], [2, 6], [2, 7], [2, 8], [3, 5]]},
         {"position": [3, 6],
-         "protected": [[3, 7], [3, 7], [4, 6], [4, 7], [4, 8], [5, 6], [5, 8]]},
+         "protected": [[3, 7], [3, 8], [4, 6], [4, 7], [4, 8], [5, 6], [5, 8]]},
         {"position": [5, 2],
          "protected": [[5, 1], [5, 3], [6, 1], [6, 2], [7, 1], [7, 2], [8, 1], [8, 2]]},
         {"position": [6, 3],
@@ -103,8 +103,10 @@ class GameEngine:
                 game_spot = GameSpot(y + 1, x + 1, False, None, False, [])
                 self.game_field[x].append(game_spot)
 
-    def print_current_field(self):
+    def get_current_field_view(self):
         """Функция для отображения игрового поля"""
+
+        result_as_lines = []
 
         for i in range(len(self.game_field)):
             line = self.game_field[self._game_field_width - i - 1]
@@ -113,8 +115,8 @@ class GameEngine:
                 return a.request_occupation_tag() if len(a.request_occupation_tag()) == 2 \
                     else f' {a.request_occupation_tag()}'
 
-            print(f"{self._game_field_width - i} "
-                  f"{list(map(get_tag, line))}")
+            result_as_lines.append(f"{self._game_field_width - i} " + f"{list(map(get_tag, line))}")
+
             i += 1
 
         vert_lines_count = []
@@ -122,7 +124,9 @@ class GameEngine:
         for x in range(self._game_field_width):
             vert_lines_count.append(str(x + 1))
 
-        print("", *vert_lines_count, sep="     ")
+        result_as_lines.append("     " + "     ".join(vert_lines_count))
+
+        return "\n".join(result_as_lines)
 
     def get_tags(self):
         """Возвращает список тэгов, присутствующих на игровом поле (кроме сундуков с сокровищами)"""

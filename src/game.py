@@ -14,4 +14,4 @@ class Game:
     def start(self):
         """Запускает игровой движок и контроллер для приема команд"""
         self.game_engine.start_game()
-        self.game_controller.start()
+        self.game_controller.listen()
