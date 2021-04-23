@@ -6,7 +6,13 @@ class Logger:
 
     def __init__(self):
         cwd = os.getcwd()
-        self.logs_output_path = cwd + "/logs/logs.csv"
+        self.logs_output_path = cwd + "/files/logs.csv"
+
+        if not os.path.isfile(self.logs_output_path):
+            with open(self.logs_output_path, "w", encoding="utf-8") as file:
+                file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+                file_writer.writerow(["Game_ID", "Game_Event", "Message"])
 
     def log(self, game_id, game_event, message):
         """
@@ -15,11 +21,10 @@ class Logger:
         :param message: str, описание события
         """
 
-        with open(self.logs_output_path, "w", encoding="utf-8") as file:
+        with open(self.logs_output_path, "a", encoding="utf-8") as file:
             file_writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-            file_writer.writerow(["Game_ID",
-                                  "Game_Event",
-                                  "Message"])
-
             file_writer.writerow([game_id, game_event, message])
+
+    def remove_logs(self):
+        os.remove(self.logs_output_path)
