@@ -8,14 +8,14 @@ class GameController:
 
     def __init__(self, game_engine):
         self.game_engine = game_engine
-        self.input_stream = ""
+        self.io_stream = ""
 
-    def listen(self, input_stream="console"):
+    def listen(self, io_stream="console"):
         """Запуск приема команд от игрока"""
 
-        self.input_stream = input_stream
+        self.io_stream = io_stream
 
-        if input_stream == "console":
+        if io_stream == "console":
             self.start_with_console()
 
         else:

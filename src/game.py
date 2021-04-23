@@ -1,3 +1,5 @@
+import os
+
 from . game_engine import GameEngine
 from . game_controller import GameController
 
@@ -18,5 +20,7 @@ class Game:
 
     def start(self):
         """Запускает игровой движок и контроллер для приема команд"""
+        io_stream = os.getenv("IO_STREAM", "console")
+
         self.game_engine.start_game()
-        self.game_controller.listen()
+        self.game_controller.listen(io_stream=io_stream)
