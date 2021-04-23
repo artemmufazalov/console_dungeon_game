@@ -11,6 +11,7 @@ class GameController:
     def __init__(self, game_engine):
         self.game_engine = game_engine
         self.io_stream = ""
+        self.action_result = ""
 
     def listen(self, io_stream="console"):
         """Запуск приема команд от игрока"""
@@ -28,7 +29,7 @@ class GameController:
 
         while self.game_engine.is_game_on:
             user_command = input("Введите команду: ").lower()
-            self.listen_command(user_command)
+            print(self.listen_command(user_command))
 
     def _validate_end_game_confirmation_request(self, answer):
         if answer == "yes" or answer == "да":
@@ -43,23 +44,27 @@ class GameController:
     def listen_command(self, user_command):
         """Выполнение переданной команды"""
         active_tags = self.game_engine.get_tags()
+        self.action_result = ""
+
+        def append_result(line):
+            self.action_result += line + "\n"
 
         try:
 
             if self.is_end_game_confirmation_request_pending:
-                print(self._validate_end_game_confirmation_request(user_command))
+                append_result(self._validate_end_game_confirmation_request(user_command))
 
             elif user_command.startswith("help"):
-                print(self.game_engine.hepl())
+                append_result(self.game_engine.hepl())
 
             elif user_command.startswith("print_field"):
-                print(self.game_engine.get_current_field_view())
+                append_result(self.game_engine.get_current_field_view())
 
             elif user_command.startswith("end_game"):
                 # Проверяем, действительно ли пользователь хочет закончить игру
                 self.is_end_game_confirmation_request_pending = True
 
-                print("Вы уверены, что хотите завершить игру? (Да / Нет)")
+                append_result("Вы уверены, что хотите завершить игру? (Да / Нет)")
 
             elif user_command == "repeat" or user_command == "repeat()":
                 player_actions = self.game_engine.get_player_actions()
@@ -73,16 +78,16 @@ class GameController:
                     if character.__class__.__name__[0].lower() not in self.game_engine.get_friendly_tags():
                         raise GameError(f"Команду невозможно повторить, возможно ваш \"{character.name}\" погиб!")
 
-                    print(character.perform_action(action, args))
+                    append_result(character.perform_action(action, args))
 
             elif user_command.startswith("info("):
                 arguments = list(map(lambda x: x.strip(), user_command[user_command.index("(") + 1: -1].split(",")))
 
                 if len(arguments) == 1:
                     if arguments[0] == "inv":
-                        print(self.game_engine.inventory.info())
+                        append_result(self.game_engine.inventory.info())
                     elif arguments[0] in active_tags:
-                        print(self.game_engine.items_dict[arguments[0]].info())
+                        append_result(self.game_engine.items_dict[arguments[0]].info())
                     else:
                         raise GameError("Переданный тэг не верен. Попробуйте запросить информацию по другому тэгу.")
 
@@ -94,7 +99,7 @@ class GameController:
                             raise GameError("Переданные координаты находятся за пределами игрового поля. "
                                             "Попробуйте изменить запрос.")
                         else:
-                            print(self.game_engine.game_field[arguments[1] - 1][arguments[0] - 1].info())
+                            append_result(self.game_engine.game_field[arguments[1] - 1][arguments[0] - 1].info())
                     else:
                         raise GameError(
                             "Переданные аргументы не соответствуют требованиям. Попробуйте изменить запрос.")
@@ -108,7 +113,7 @@ class GameController:
                         arguments = list(
                             map(lambda x: x.strip(), user_command[user_command.index("(") + 1: -1].split(",")))
 
-                        print(self.game_engine.items_dict[tag].perform_action(action, [*arguments]))
+                        append_result(self.game_engine.items_dict[tag].perform_action(action, [*arguments]))
 
                     else:
                         raise GameError(
@@ -119,8 +124,10 @@ class GameController:
             else:
                 raise GameError("Введенная команда не корректна. Попробуйте изменить запрос.")
 
-            print(self.game_engine.check_is_game_on())
+            append_result(self.game_engine.check_is_game_on())
+
+            return self.action_result[:-1]
 
         # Обрабатываем все игровые ошибки, возникшие в ходе игры
         except GameError as err:
-            print(f"Операция не может быть выполнена. {err}\n")
+            return f"Операция не может быть выполнена. {err}\n"
