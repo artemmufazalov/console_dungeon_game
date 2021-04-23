@@ -6,6 +6,8 @@ class GameController:
     Класс контролера. Он отвечает за прием и первичную обработку команд пользователя
     """
 
+    is_end_game_confirmation_request_pending = False
+
     def __init__(self, game_engine):
         self.game_engine = game_engine
         self.io_stream = ""
@@ -28,32 +30,36 @@ class GameController:
             user_command = input("Введите команду: ").lower()
             self.listen_command(user_command)
 
+    def _validate_end_game_confirmation_request(self, answer):
+        if answer == "yes" or answer == "да":
+            self.is_end_game_confirmation_request_pending = False
+            return self.game_engine.end_game()
+        elif answer == "no" or answer == "not" or answer == "нет":
+            self.is_end_game_confirmation_request_pending = False
+            return "Тогда продолжаем!"
+        else:
+            return "Ваш ответ должен быть формата \"да\" или \"нет\"."
+
     def listen_command(self, user_command):
         """Выполнение переданной команды"""
         active_tags = self.game_engine.get_tags()
 
         try:
 
-            if user_command.startswith("help"):
+            if self.is_end_game_confirmation_request_pending:
+                print(self._validate_end_game_confirmation_request(user_command))
+
+            elif user_command.startswith("help"):
                 print(self.game_engine.hepl())
 
             elif user_command.startswith("print_field"):
                 print(self.game_engine.get_current_field_view())
 
             elif user_command.startswith("end_game"):
-
                 # Проверяем, действительно ли пользователь хочет закончить игру
-                def request_user_confirmation():
-                    user_response = input("Вы уверены, что хотите завершить игру? (Да / Нет) ").lower()
-                    if user_response == "yes" or user_response == "да":
-                        print(self.game_engine.end_game())
-                    elif user_response == "no" or user_response == "not" or user_response == "нет":
-                        return
-                    else:
-                        print("Ваш ответ должен быть формата \"да\" или \"нет\".")
-                        request_user_confirmation()
+                self.is_end_game_confirmation_request_pending = True
 
-                request_user_confirmation()
+                print("Вы уверены, что хотите завершить игру? (Да / Нет)")
 
             elif user_command == "repeat" or user_command == "repeat()":
                 player_actions = self.game_engine.get_player_actions()
