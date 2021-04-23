@@ -2,7 +2,7 @@ import os
 
 from . game_engine import GameEngine
 from . game_controller import GameController
-
+from utils.logger import Logger
 
 class Game:
     """Игра Console Dungeon"""
@@ -15,7 +15,10 @@ class Game:
         Game.games_count += 1
 
         self.game_id = Game.games_count
-        self.game_engine = GameEngine()
+
+        logger = Logger()
+
+        self.game_engine = GameEngine(self.game_id, logger)
         self.game_controller = GameController(self.game_engine)
 
     def start(self):

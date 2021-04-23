@@ -8,5 +8,8 @@
 .env
 /configs
 
+# Logs
+/logs
+
 # Other
 /other

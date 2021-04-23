@@ -1,10 +1,9 @@
-from . enemy_characters import Enemy
-from . errors import GameEngineError
-from . game_spot import GameSpot
-from . playable_characters import Warrior, Mage, Archer, Fairy
-from . inventory import Inventory
-from . items import HealthPotion, EnergyPotion, TreasureChest
-from . helpers import get_random_list_element
+from .enemy_characters import Enemy
+from .game_spot import GameSpot
+from .playable_characters import Warrior, Mage, Archer, Fairy
+from .inventory import Inventory
+from .items import HealthPotion, EnergyPotion, TreasureChest
+from .helpers import get_random_list_element
 
 
 class GameEngine:
@@ -80,8 +79,10 @@ class GameEngine:
         [[8, 3], [8, 4]]
     ]
 
-    def __init__(self):
+    def __init__(self, game_id, logger):
 
+        self.game_id = game_id
+        self.logger = logger
         self.score = 0
         self.is_game_on = True
         self.game_field = []
@@ -210,7 +211,7 @@ class GameEngine:
                      self._main_enemy_default_position[0],
                      self._main_enemy_default_position[1],
                      True)
-        self.game_field[self._main_enemy_default_position[1] - 1][self._main_enemy_default_position[0] - 1]\
+        self.game_field[self._main_enemy_default_position[1] - 1][self._main_enemy_default_position[0] - 1] \
             .set_spot_owner(boss)
         self.field_tags.append(boss.get_tag())
         self.items_dict[boss.get_tag()] = boss
@@ -249,22 +250,32 @@ class GameEngine:
         self.score -= actions_score
         return self.score
 
-    def end_game(self):
+    def end_game(self, status=""):
         """Функция для завершения игры"""
         self.is_game_on = False
-        return f"Игра окончена. Ваш счет: {self._calculate_final_score()}."
+
+        score = self._calculate_final_score()
+        game_status = "победой" if status == "success" else "поражением" if status == "failure" else "досрочно"
+
+        self.logger.log(game_id=self.game_id,
+                        game_event="Окончание игры",
+                        message=f"Игра окончена {game_status}. "
+                                + f"Было отдано {len(self.get_player_actions())} игровых команд. "
+                                + f"Игровой счет: {score}.")
+
+        return f"Игра окончена. Ваш счет: {score}."
 
     def end_game_success(self):
         """Функция для завершения игры, если все враги повержены"""
         result = "\nГлавный враг повержен! Вы победили!\n"
-        result += self.end_game()
+        result += self.end_game("success")
 
         return result
 
     def end_game_failure(self):
         """Функция для завершения игры, если все дружественные персонажи погибли и игра не может быть продолжена"""
         result = "\nВсе ваши персонажи погибли! Враги победили!\n"
-        result += self.end_game()
+        result += self.end_game("failure")
 
         return result
 
