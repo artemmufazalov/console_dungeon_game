@@ -9,11 +9,8 @@ from . helpers import get_random_list_element
 
 class GameEngine:
     """
-    Класс игрового движка. Хранит данные текущей игры. Может существовать только в единственном экземпляре.
+    Класс игрового движка. Хранит данные текущей игры
     """
-
-    # Количество запущенных движков
-    count = 0
 
     # Размеры игрового поля
     _game_field_width = 8
@@ -84,10 +81,6 @@ class GameEngine:
     ]
 
     def __init__(self):
-        if self.count > 0:
-            raise GameEngineError("Одновременно может быть запущен только один игровой движок.")
-
-        GameEngine.count += 1
 
         self.score = 0
         self.is_game_on = True

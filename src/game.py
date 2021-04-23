@@ -5,9 +5,14 @@ from . game_controller import GameController
 class Game:
     """Игра Console Dungeon"""
 
+    games_count = 0
+
     def __init__(self):
 
         # Инициализируем игровой движок и контроллер
+        Game.games_count += 1
+
+        self.game_id = Game.games_count
         self.game_engine = GameEngine()
         self.game_controller = GameController(self.game_engine)
 
