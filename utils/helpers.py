@@ -5,6 +5,10 @@ import os
 def generate_game_id():
     path = os.getcwd() + "/files/meta.json"
 
+    if not os.path.isfile(path):
+        with open(path, "w", encoding="utf-8") as file:
+            json.dump({"last_game_id": 0}, file)
+
     game_id = int()
 
     with open(path) as file_to_read:
