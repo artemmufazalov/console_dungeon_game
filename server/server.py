@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-import os
 from datetime import datetime
 
 from src.game import Game
@@ -12,7 +11,7 @@ class App:
     def __init__(self):
         pass
 
-    def _after_request(self, response):
+    def after_request(self, response):
         self._delete_invalid_games()
 
         header = response.headers
@@ -20,23 +19,42 @@ class App:
 
         return response
 
-    def run(self):
-        app = Flask(__name__)
+    def init_game(self):
+        try:
+            game = Game()
+            self._add_new_game(game)
+            game_id = game.game_id
+            response_content = game.start()
 
-        app.after_request(self._after_request)
+            return jsonify({
+                "game_id": game_id,
+                "response_content": response_content,
+                "game_field": game.game_engine.get_current_field_raw()
+            }), 200
 
-        @app.route('/init', methods=['GET'])
-        def init_game():
+        except Exception as err:
+            return jsonify({
+                "response_content": f"Some error occurred! Request could not be completed",
+                "error": str(err)
+            }), 500
+
+    def perform_action(self):
+        data = request.json
+
+        command = data["command"]
+        game_id = data["game_id"]
+
+        if command and game_id:
             try:
-                game = Game()
-                self._add_new_game(game)
-                game_id = game.game_id
-                response_content = game.start()
+                game = self._get_game_by_id(game_id)
+                result = game.game_controller.listen_command(command)
+                is_on = game.is_on
 
                 return jsonify({
                     "game_id": game_id,
-                    "response_content": response_content,
-                    "game_field": game.game_engine.get_current_field_raw()
+                    "response_content": result,
+                    "game_field": game.game_engine.get_current_field_raw(),
+                    "is_on": is_on
                 }), 200
 
             except Exception as err:
@@ -44,63 +62,34 @@ class App:
                     "response_content": f"Some error occurred! Request could not be completed",
                     "error": str(err)
                 }), 500
+        else:
+            return jsonify({
+                "response_content": "Was provided invalid arguments!",
+            }), 403
 
-        @app.route('/perform', methods=['POST'])
-        def perform_action():
-            data = request.json
+    def end_game(self):
+        game_id = int(request.form.get("game_id"))
 
-            command = data["command"]
-            game_id = data["game_id"]
+        if game_id:
+            try:
+                game = self._get_game_by_id(game_id)
+                result = game.game_engine.end_game()
 
-            if command and game_id:
-                try:
-                    game = self._get_game_by_id(game_id)
-                    result = game.game_controller.listen_command(command)
-                    is_on = game.is_on
-
-                    return jsonify({
-                        "game_id": game_id,
-                        "response_content": result,
-                        "game_field": game.game_engine.get_current_field_raw(),
-                        "is_on": is_on
-                    }), 200
-
-                except Exception as err:
-                    return jsonify({
-                        "response_content": f"Some error occurred! Request could not be completed",
-                        "error": str(err)
-                    }), 500
-            else:
                 return jsonify({
-                    "response_content": "Was provided invalid arguments!",
-                }), 403
+                    "game_id": game_id,
+                    "response_content": result,
+                    "is_on": False
+                }), 200
 
-        @app.route('/perform', methods=['POST'])
-        def end_game():
-            game_id = int(request.form.get("game_id"))
-
-            if game_id:
-                try:
-                    game = self._get_game_by_id(game_id)
-                    result = game.game_engine.end_game()
-
-                    return jsonify({
-                        "game_id": game_id,
-                        "response_content": result,
-                        "is_on": False
-                    }), 200
-
-                except Exception as err:
-                    return jsonify({
-                        "response_content": f"Some error occurred! Request could not be completed",
-                        "error": str(err)
-                    }), 500
-            else:
+            except Exception as err:
                 return jsonify({
-                    "response_content": "Was provided invalid arguments!",
-                }), 403
-
-        app.run(port=int(os.getenv("PORT", 5000)))
+                    "response_content": f"Some error occurred! Request could not be completed",
+                    "error": str(err)
+                }), 500
+        else:
+            return jsonify({
+                "response_content": "Was provided invalid arguments!",
+            }), 403
 
     def _add_new_game(self, game):
         self.active_games[str(game.game_id)] = {
