@@ -20,7 +20,8 @@ class GameController:
 
         if io_stream == "console":
             self.start_with_console()
-
+        elif io_stream == "web":
+            pass
         else:
             raise GameEngineError("Передан неверный поток ввода данных.")
 

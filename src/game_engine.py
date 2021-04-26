@@ -79,13 +79,15 @@ class GameEngine:
         [[8, 3], [8, 4]]
     ]
 
-    def __init__(self, game_id, logger):
+    def __init__(self, game, game_id, logger):
 
+        self.game = game
         self.game_id = game_id
         self.logger = logger
         self.score = 0
         self.is_game_on = True
         self.game_field = []
+        self._init_result_output = []
 
     def _init_empty_game_field(self):
         """Функция создания пустого игрового поля"""
@@ -96,6 +98,22 @@ class GameEngine:
                 # Здесь транспонируются координаты. В дальнейшем обращение к игровому полю будет формата [y][x]
                 game_spot = GameSpot(y + 1, x + 1, False, None, False, [])
                 self.game_field[x].append(game_spot)
+
+    def _append_init_results_output(self, line):
+        self._init_result_output.append(line)
+
+    def get_current_field_raw(self):
+        raw_view = []
+
+        for i in range(len(self.game_field)):
+            line = self.game_field[self._game_field_width - i - 1]
+
+            def get_tag(a):
+                return a.request_occupation_tag()
+
+            raw_view.append(list(map(get_tag, line)))
+
+        return raw_view
 
     def get_current_field_view(self):
         """Функция для отображения игрового поля"""
@@ -109,7 +127,7 @@ class GameEngine:
                 return a.request_occupation_tag() if len(a.request_occupation_tag()) == 2 \
                     else f' {a.request_occupation_tag()}'
 
-            result_as_lines.append(f"{self._game_field_width - i} " + f"{list(map(get_tag, line))}")
+            result_as_lines.append(f"{self._game_field_width - i}| " + f"{' '.join(list(map(get_tag, line)))}")
 
             i += 1
 
@@ -118,7 +136,8 @@ class GameEngine:
         for x in range(self._game_field_width):
             vert_lines_count.append(str(x + 1))
 
-        result_as_lines.append("     " + "     ".join(vert_lines_count))
+        result_as_lines.append("  " + "---" * self._game_field_width)
+        result_as_lines.append("    " + "  ".join(vert_lines_count))
 
         return "\n".join(result_as_lines)
 
@@ -141,42 +160,47 @@ class GameEngine:
     def start_game(self):
         """Начало игры. Инициализирует игровое поле и игровые объекты"""
 
+        self._init_result_output = []
+
         self._init_empty_game_field()
         self._init_inventory()
         self._init_treasures()
         self._init_characters()
         self._init_enemies()
-        print(f"\n{self.help()}")
+
+        self._append_init_results_output(f"\n{self.help()}")
+
+        return "\n".join(self._init_result_output)
 
     def _init_inventory(self):
         """Создает рюкзак и добавляет в него начальный запас эликсиров"""
 
-        print("\n...Инициализация рюкзака...")
+        self._append_init_results_output("\n...Инициализация рюкзака...")
         self.inventory = Inventory()
-        print("Создан рюкзак.")
-        print("В рюкзак добавлены предметы:")
+        self._append_init_results_output("Создан рюкзак.")
+        self._append_init_results_output("В рюкзак добавлены предметы:")
         health_potion = HealthPotion()
         self.inventory.add_item(health_potion)
-        print(f"* {health_potion.info()}")
+        self._append_init_results_output(f"* {health_potion.info()}")
         energy_potion = EnergyPotion()
         self.inventory.add_item(energy_potion)
-        print(f"* {energy_potion.info()}")
+        self._append_init_results_output(f"* {energy_potion.info()}")
 
     def _init_treasures(self):
         """Инициализирует на игровом поле сундуки с сокровищами"""
 
-        print("\n...Инициализация сундуков с сокровищами...")
+        self._append_init_results_output("\n...Инициализация сундуков с сокровищами...")
 
         for coords in self._treasures_variable_positions:
             chest_coords = get_random_list_element(coords)
             treasure_chest = TreasureChest(chest_coords[0], chest_coords[1])
             self.game_field[chest_coords[0] - 1][chest_coords[1] - 1].set_spot_owner(treasure_chest)
-            print(f"В клетку ({chest_coords[1]}, {chest_coords[0]}) был добавлен сундук с сокровищем.")
+            self._append_init_results_output(f"В клетку ({chest_coords[1]}, {chest_coords[0]}) был добавлен сундук с сокровищем.")
 
     def _init_characters(self):
         """Инициализирует на игровом поле дружественных персонажей"""
 
-        print("\n...Инициализация игровых персонажей...")
+        self._append_init_results_output("\n...Инициализация игровых персонажей...")
 
         for key in list(self._characters_default_positions.keys()):
             coords = self._characters_default_positions[key]
@@ -185,12 +209,12 @@ class GameEngine:
             self.friendly_tags.append(character.get_tag())
             self.field_tags.append(character.get_tag())
             self.items_dict[character.get_tag()] = character
-            print(f"Создан игровой персонаж. {character.info()}")
+            self._append_init_results_output(f"Создан игровой персонаж. {character.info()}")
 
     def _init_enemies(self):
         """Инициализирует на игровом поле враждебных персонажей"""
 
-        print("\n...Инициализация врагов...")
+        self._append_init_results_output("\n...Инициализация врагов...")
 
         for enemy_positions in self._enemies_positions:
             coords = enemy_positions["position"]
@@ -204,7 +228,7 @@ class GameEngine:
                 spot.set_spot_protector(enemy)
                 enemy.add_protected_spot(spot)
 
-            print(f"* {enemy.info()}")
+            self._append_init_results_output(f"* {enemy.info()}")
 
         boss = Enemy(self,
                      self.difficulty,
@@ -215,7 +239,7 @@ class GameEngine:
             .set_spot_owner(boss)
         self.field_tags.append(boss.get_tag())
         self.items_dict[boss.get_tag()] = boss
-        print(f"* {boss.info()}\n")
+        self._append_init_results_output(f"* {boss.info()}\n")
 
     def add_player_action(self, subject, action, args):
         """
@@ -262,6 +286,8 @@ class GameEngine:
                         message=f"Игра окончена {game_status}. "
                                 + f"Было отдано {len(self.get_player_actions())} игровых команд. "
                                 + f"Игровой счет: {score}.")
+
+        self.game.is_on = False
 
         return f"Игра окончена. Ваш счет: {score}."
 
