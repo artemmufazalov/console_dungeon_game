@@ -23,6 +23,9 @@ class Game:
         self.game_engine = GameEngine(self, self.game_id, logger)
         self.game_controller = GameController(self.game_engine)
 
+    def set_off(self):
+        self.is_on = False
+
     def start(self):
         """Запускает игровой движок и контроллер для приема команд"""
         io_stream = os.getenv("IO_STREAM", "console")

@@ -14,8 +14,9 @@ class App:
     def after_request(self, response):
         self._delete_invalid_games()
 
-        header = response.headers
-        header['Access-Control-Allow-Origin'] = '*'
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "*")
+        response.headers.add("Access-Control-Allow-Methods", "*")
 
         return response
 
@@ -29,7 +30,6 @@ class App:
             return jsonify({
                 "game_id": game_id,
                 "response_content": response_content,
-                "game_field": game.game_engine.get_current_field_raw()
             }), 200
 
         except Exception as err:
@@ -53,7 +53,6 @@ class App:
                 return jsonify({
                     "game_id": game_id,
                     "response_content": result,
-                    "game_field": game.game_engine.get_current_field_raw(),
                     "is_on": is_on
                 }), 200
 

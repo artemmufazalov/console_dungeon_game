@@ -47,6 +47,8 @@ class GameController:
         active_tags = self.game_engine.get_tags()
         self.action_result = ""
 
+        user_command = user_command.lower()
+
         def append_result(line):
             self.action_result += line + "\n"
 

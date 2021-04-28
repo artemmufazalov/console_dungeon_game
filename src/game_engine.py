@@ -287,7 +287,7 @@ class GameEngine:
                                 + f"Было отдано {len(self.get_player_actions())} игровых команд. "
                                 + f"Игровой счет: {score}.")
 
-        self.game.is_on = False
+        self.game.set_off()
 
         return f"Игра окончена. Ваш счет: {score}."
 
