@@ -4,9 +4,7 @@ import requests
 import random
 
 
-def generate_game_id():
-    io_stream = os.getenv("IO_STREAM")
-
+def generate_game_id(io_stream):
     game_id = int()
 
     try:

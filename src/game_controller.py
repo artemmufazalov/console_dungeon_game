@@ -58,7 +58,7 @@ class GameController:
                 append_result(self._validate_end_game_confirmation_request(user_command))
 
             elif user_command.startswith("help"):
-                append_result(self.game_engine.hepl())
+                append_result(self.game_engine.help())
 
             elif user_command.startswith("print_field"):
                 append_result(self.game_engine.get_current_field_view())
@@ -133,4 +133,10 @@ class GameController:
 
         # Обрабатываем все игровые ошибки, возникшие в ходе игры
         except GameError as err:
+            return f"Операция не может быть выполнена. {err}\n"
+
+        except GameEngineError as err:
+            return f"Операция не может быть выполнена. {err}\n"
+
+        except Exception as err:
             return f"Операция не может быть выполнена. {err}\n"
